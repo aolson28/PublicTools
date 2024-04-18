@@ -244,24 +244,42 @@
 	  <h2>Power BI formatted query</h2>
 	  <textarea id="output-text"></textarea>
 	  </br>
-	  <h2 class="hide" >Power BI full query (future feature)</h2>
-	  <textarea class="hide" id="full-query-output-text"></textarea>
+	  <h2 class="" >Power BI full query (basic query)</h2>
+    <h4>You will need to work on converting to table and expanding columns.</h4>
+	  <textarea class="" id="full-query-output-text"></textarea>
 	 </div>
     <script>
 	const inputText = document.getElementById("input-text");
 	let queryText;
-	const outputText =document.getElementById("output-text");
-	// const outputText =document.getElementById("full-query-output-text");
-	const formatForPowerBI = () => { if (!inputText.value) {
-			queryText = inputText.placeholder;
-		} else {
-			queryText = inputText.value;
+	const outputText = document.getElementById("output-text");
+	const fullQueryText = document.getElementById("full-query-output-text");
+		const formatForPowerBI = () => { if (!inputText.value) {
+				queryText = inputText.placeholder;
+			} else {
+				queryText = inputText.value;
+			}
+			
+			let escapedQueryText = queryText.replace(/"/g, '\\""').replace(/(\r\n|\n|\r)/gm,"").replace(/\s+/g,' ');
+			outputText.innerHTML = `"{""query"": ""${escapedQueryText}""}"`;
+		fullQueryText.innerHTML = `let
+		Query = Web.Contents(
+		"<your_api_url>",
+		[
+		  Headers=[
+			#"Method"="POST",
+			#"Content-Type"="application/json",
+			#"Authorization"="<your_api_token>"
+			],
+			Content=Text.ToBinary(${outputText.innerHTML})
+		]
+		),
+		#"DATA" = Json.Document(Query)
+	in
+		#"DATA"
+		`                                  
 		}
-		
-		let escapedQueryText = queryText.replace(/"/g, '\\""').replace(/(\r\n|\n|\r)/gm,"").replace(/\s+/g,' ');
-		outputText.innerHTML = `"{""query"": ""${escapedQueryText}""}"`;
-	}
-	    formatForPowerBI();
+	  
+	  formatForPowerBI();
 	</script>
   </body>
 </html>
